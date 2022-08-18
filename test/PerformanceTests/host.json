@@ -11,19 +11,15 @@
       // - have no effect on what is traced to the console when running in a container
       // - have no effect on what is shown in the Live Metrics side panel in the portal
 
-      // since these are performance test, we track only warnings by default
-      "default": "Warning",
-
-      // ---- Function-framework metrics; enable these if you want to see graphs in the Azure portal
-      //"Host.Aggregator": "Information",
-      //"Host.Results": "Information",
-      //"Host.Triggers.DurableTask": "Information", 
+      // ---- Per-invocation framework-generated logging
+      //"Host.Triggers.DurableTask": "Information", // use this setting if you need analytics in the portal
+      "Host.Triggers.DurableTask": "Warning", // use this setting otherwise
 
       // ---- Per-invocation application-generated logging
       //"Function": "Information", // use this setting for small-scale debugging only
-      "Function": "Error", // use this setting when running perf tests
+      "Function": "Warning", // use this setting when running perf tests
 
-      // user-code generated traces for selected functions
+      // for selected functions, allow some more user-generated tracing detail
       "Function.ProducerEntity.User": "Information",
       "Function.PullerEntity.User": "Information",
       "Function.ConsumerEntity.User": "Information",
@@ -48,7 +44,6 @@
         "excludedTypes": "Exception"
       }
     }
-
   },
   "extensions": {
     "http": {
