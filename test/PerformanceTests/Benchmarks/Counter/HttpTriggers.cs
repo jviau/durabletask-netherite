@@ -7,6 +7,7 @@ namespace PerformanceTests.Orchestrations.Counter
     using System.Diagnostics;
     using System.IO;
     using System.Linq;
+    using System.Net;
     using System.Threading;
     using System.Threading.Tasks;
     using Microsoft.AspNetCore.Http;
@@ -43,7 +44,7 @@ namespace PerformanceTests.Orchestrations.Counter
                 await Task.Delay(TimeSpan.FromSeconds(2));
             }
 
-            return new OkObjectResult("timed out.\n");
+            return new ObjectResult("waitfor operation timed out.\n") { StatusCode = (int) HttpStatusCode.RequestTimeout };
         }
 
         [FunctionName(nameof(Add))]
@@ -62,7 +63,7 @@ namespace PerformanceTests.Orchestrations.Counter
             }
             catch (Exception e)
             {
-                return new OkObjectResult(e.ToString());
+                return new ObjectResult(e.ToString()) { StatusCode = (int)HttpStatusCode.InternalServerError };
             }
         }
 
@@ -88,9 +89,30 @@ namespace PerformanceTests.Orchestrations.Counter
             }
             catch (Exception e)
             {
-                return new OkObjectResult(e.ToString());
+                return new ObjectResult(e.ToString()) { StatusCode = (int)HttpStatusCode.InternalServerError };
             }
         }
+
+
+
+        [FunctionName(nameof(Delete))]
+        public static async Task<IActionResult> Delete(
+            [HttpTrigger(AuthorizationLevel.Anonymous, "delete", Route = "counter/{key}")] HttpRequest req,
+            string key,
+            [DurableClient] IDurableClient client)
+        {
+            try
+            {
+                var entityId = new EntityId("Counter", key);
+                await client.SignalEntityAsync(entityId, "delete");
+                return new OkObjectResult($"delete was sent to {entityId}.\n");
+            }
+            catch (Exception e)
+            {
+                return new ObjectResult(e.ToString()) { StatusCode = (int)HttpStatusCode.InternalServerError };
+            }
+        }
+
 
         [FunctionName(nameof(Crash))]
         public static async Task<IActionResult> Crash(
@@ -106,7 +128,7 @@ namespace PerformanceTests.Orchestrations.Counter
             }
             catch (Exception e)
             {
-                return new OkObjectResult(e.ToString());
+                return new ObjectResult(e.ToString()) { StatusCode = (int)HttpStatusCode.InternalServerError };
             }
         }
 
@@ -143,7 +165,7 @@ namespace PerformanceTests.Orchestrations.Counter
             }
             catch (Exception e)
             {
-                return new OkObjectResult(e.ToString());
+                return new ObjectResult(e.ToString()) { StatusCode = (int)HttpStatusCode.InternalServerError };
             }
         }
 
@@ -203,7 +225,7 @@ namespace PerformanceTests.Orchestrations.Counter
 
                 if (results.Any(result => result == null))
                 {
-                    return new OkObjectResult($"timed out after {(DateTime.UtcNow - startTime)}.\n");
+                    return new ObjectResult($"timed out after {(DateTime.UtcNow - startTime)}.\n") { StatusCode = (int)HttpStatusCode.RequestTimeout };
                 }
 
                 return new OkObjectResult($"received {numberSignals} signals on {numberEntities} entities in {results.Max():F1}s.\n");
