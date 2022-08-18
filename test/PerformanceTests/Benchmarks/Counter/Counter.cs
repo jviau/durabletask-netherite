@@ -16,29 +16,34 @@ namespace PerformanceTests.Orchestrations.Counter
     using System.Threading.Tasks;
     using Microsoft.AspNetCore.Http;
     using Microsoft.AspNetCore.Mvc;
+    using Microsoft.AspNetCore.Server.Kestrel.Core.Internal.Infrastructure;
     using Microsoft.Azure.WebJobs;
     using Microsoft.Azure.WebJobs.Extensions.DurableTask;
     using Microsoft.Azure.WebJobs.Extensions.Http;
+    using Microsoft.DurableTask.Protobuf;
     using Microsoft.Extensions.Logging;
     using Newtonsoft.Json;
 
     public class Counter
     {
-        [JsonProperty("value")]
         public int CurrentValue { get; set; }
 
-        [JsonProperty("modified")]
+        public DateTime? StartTime { get; set; }
+
         public DateTime LastModified { get; set; }
 
         public void Add(int amount)
         {
             this.CurrentValue += amount;
-            this.LastModified = DateTime.UtcNow;
+            this.UpdateTimestamps();
         }
 
-        public void Reset()
+        void UpdateTimestamps()
         {
-            this.CurrentValue = 0;
+            if (!this.StartTime.HasValue)
+            {
+                this.StartTime = DateTime.UtcNow;
+            }
             this.LastModified = DateTime.UtcNow;
         }
 
