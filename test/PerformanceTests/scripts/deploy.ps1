@@ -33,7 +33,7 @@ if ($DeployCode)
 	    $hostconf.extensions.durableTask | Add-Member -Force -NotePropertyName "maxConcurrentOrchestratorFunctions" -NotePropertyValue $MaxO
 	}
 
-	$hostconf | ConvertTo-Json -depth 32 | set-content "./bin/$Configuration/netcoreapp3.1/host.json"
+	$hostconf | ConvertTo-Json -depth 32 | set-content "./bin/$Configuration/net6.0/host.json"
 }
 
 if (-not ((az functionapp list -g $groupName --query "[].name"| ConvertFrom-Json) -contains $functionAppName))
@@ -43,7 +43,7 @@ if (-not ((az functionapp list -g $groupName --query "[].name"| ConvertFrom-Json
 
 	Write-Host "Creating $Plan Function App..."
 	az functionapp plan create --resource-group  $groupName --name  $functionAppName --location $location --sku $Plan
-	az functionapp create --name  $functionAppName --storage-account $storageName --plan  $functionAppName --resource-group  $groupName --functions-version 3
+	az functionapp create --name  $functionAppName --storage-account $storageName --plan  $functionAppName --resource-group  $groupName --functions-version 4
     az functionapp config set -n $functionAppName -g $groupName --use-32bit-worker-process false
     az functionapp config appsettings set -n $functionAppName -g  $groupName --settings EventHubsConnection=$eventHubsConnectionString
     az functionapp config appsettings set -n $functionAppName -g  $groupName --settings EHNamespace=$Env:EHNamespace
@@ -68,7 +68,7 @@ else
 if ($DeployCode)
 {
 	# enter the directory with the binaries
-	Push-Location -Path bin/$Configuration/netcoreapp3.1  
+	Push-Location -Path bin/$Configuration/net6.0  
 
 	Write-Host "Publishing Code to Function App..."
 	func azure functionapp publish $functionAppName
